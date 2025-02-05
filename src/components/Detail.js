@@ -3,6 +3,8 @@ import { useParams, useHistory } from "react-router-dom";
 import styled from "styled-components";
 import ReactPlayer from "react-player";
 import db from "../firebase";
+import { useDispatch, useSelector } from "react-redux";
+import { addToWatchlist, removeFromWatchlist, selectWatchlist } from "../features/movie/movieSlice";
 
 const Detail = (props) => {
   const { id } = useParams();
@@ -10,6 +12,9 @@ const Detail = (props) => {
   const [detailData, setDetailData] = useState({});
   const [showVideo, setShowVideo] = useState(false);
   const [videoType, setVideoType] = useState("movie"); // "movie" or "trailer"
+  const dispatch = useDispatch();
+  const watchlist = useSelector(selectWatchlist);
+  const isInWatchlist = watchlist.some(item => item.id === id);
 
   useEffect(() => {
     const fetchMovie = () => {
@@ -62,6 +67,14 @@ const Detail = (props) => {
     }
     setShowVideo(false);
     history.goBack();
+  };
+
+  const handleWatchlist = () => {
+    if (isInWatchlist) {
+      dispatch(removeFromWatchlist(id));
+    } else {
+      dispatch(addToWatchlist(detailData));
+    }
   };
 
   return (
@@ -128,9 +141,15 @@ const Detail = (props) => {
                 <img src="/images/play-icon-white.png" alt="" />
                 <span>Trailer</span>
               </Trailer>
-              <AddList>
-                <span />
-                <span />
+              <AddList onClick={handleWatchlist}>
+                {isInWatchlist ? (
+                  <span>✓ ADDED</span>
+                ) : (
+                  <>
+                    <span>+</span>
+                    <span>ADD TO WATCHLIST</span>
+                  </>
+                )}
               </AddList>
               <GroupWatch>
                 <div>
@@ -332,33 +351,36 @@ const Trailer = styled(Player)`
   color: rgb(249, 249, 249);
 `;
 
-const AddList = styled.div`
+const AddList = styled.button`
   margin-right: 16px;
-  height: 44px;
-  width: 44px;
+  height: 56px;
+  width: auto;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  border-radius: 50%;
-  border: 2px solid white;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgb(249, 249, 249);
+  color: rgb(249, 249, 249);
+  border-radius: 4px;
   cursor: pointer;
+  padding: 0px 24px;
+  font-size: 15px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
 
   span {
-    background-color: rgb(249, 249, 249);
-    display: inline-block;
+    margin-right: 8px;
+  }
 
-    &:first-child {
-      height: 2px;
-      transform: translate(1px, 0px) rotate(0deg);
-      width: 16px;
-    }
+  &:hover {
+    background: rgba(249, 249, 249, 0.1);
+  }
 
-    &:nth-child(2) {
-      height: 16px;
-      transform: translateX(-8px) rotate(0deg);
-      width: 2px;
-    }
+  @media (max-width: 768px) {
+    height: 45px;
+    padding: 0px 12px;
+    font-size: 12px;
+    margin: 0px 10px 0px 0px;
   }
 `;
 

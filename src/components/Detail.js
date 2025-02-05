@@ -4,7 +4,11 @@ import styled from "styled-components";
 import ReactPlayer from "react-player";
 import db from "../firebase";
 import { useDispatch, useSelector } from "react-redux";
-import { addToWatchlist, removeFromWatchlist, selectWatchlist } from "../features/movie/movieSlice";
+import {
+  addToWatchlist,
+  removeFromWatchlist,
+  selectWatchlist,
+} from "../features/movie/movieSlice";
 
 const Detail = (props) => {
   const { id } = useParams();
@@ -14,7 +18,7 @@ const Detail = (props) => {
   const [videoType, setVideoType] = useState("movie"); // "movie" or "trailer"
   const dispatch = useDispatch();
   const watchlist = useSelector(selectWatchlist);
-  const isInWatchlist = watchlist.some(item => item.id === id);
+  const isInWatchlist = watchlist?.some((item) => item.id === id);
 
   useEffect(() => {
     const fetchMovie = () => {
@@ -22,7 +26,9 @@ const Detail = (props) => {
       const unsubscribe = docRef.onSnapshot(
         (doc) => {
           if (doc.exists) {
-            setDetailData(doc.data());
+            const data = doc.data();
+            console.log("Background Image URL:", data.backgroundImg);
+            setDetailData({ ...data, id: doc.id });
           } else {
             console.log("no such document in firebase ");
           }
@@ -71,7 +77,7 @@ const Detail = (props) => {
 
   const handleWatchlist = () => {
     if (isInWatchlist) {
-      dispatch(removeFromWatchlist(id));
+      dispatch(removeFromWatchlist({ id }));
     } else {
       dispatch(addToWatchlist(detailData));
     }
@@ -79,11 +85,23 @@ const Detail = (props) => {
 
   return (
     <Container>
+      <Background>
+        <img alt={detailData.title} src={detailData.backgroundImg} />
+      </Background>
       {showVideo ? (
         <VideoContainer className="video-container">
           <BackButton onClick={handleBack}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="white"/>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z"
+                fill="white"
+              />
             </svg>
             <span>Back</span>
           </BackButton>
@@ -124,10 +142,6 @@ const Detail = (props) => {
         </VideoContainer>
       ) : (
         <>
-          <Background>
-            <img alt={detailData.title} src={detailData.backgroundImg} />
-          </Background>
-
           <ImageTitle>
             <img alt={detailData.title} src={detailData.titleImg} />
           </ImageTitle>
@@ -168,11 +182,31 @@ const Detail = (props) => {
 
 const Container = styled.div`
   position: relative;
-  min-height: calc(100vh-250px);
+  min-height: calc(100vh - 250px);
   overflow-x: hidden;
   display: block;
   top: 72px;
   padding: 0 calc(3.5vw + 5px);
+  z-index: 1;
+`;
+
+const Background = styled.div`
+  left: 0;
+  opacity: 0.8;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: -1;
+  height: 100vh;
+  width: 100vw;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    inset: 0;
+  }
 `;
 
 const VideoContainer = styled.div`
@@ -244,11 +278,11 @@ const BackButton = styled.button`
   &:hover {
     background: rgba(0, 0, 0, 0.8);
     padding-right: 20px;
-    
+
     svg {
       transform: translateX(-2px);
     }
-    
+
     span {
       opacity: 1;
       transform: translateX(0);
@@ -257,24 +291,6 @@ const BackButton = styled.button`
 
   &:active {
     transform: scale(0.95);
-  }
-`;
-
-const Background = styled.div`
-  left: 0px;
-  opacity: 0.8;
-  position: fixed;
-  right: 0px;
-  top: 0px;
-  z-index: -1;
-
-  img {
-    width: 100vw;
-    height: 100vh;
-
-    @media (max-width: 768px) {
-      width: initial;
-    }
   }
 `;
 

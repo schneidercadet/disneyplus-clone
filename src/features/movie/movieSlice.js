@@ -27,7 +27,7 @@ const movieSlice = createSlice({
     },
     removeFromWatchlist: (state, action) => {
       state.watchlist = state.watchlist.filter(
-        movie => movie.id !== action.payload
+        movie => movie.id !== action.payload.id
       );
     },
   },
